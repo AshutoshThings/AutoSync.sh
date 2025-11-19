@@ -1,0 +1,7 @@
+* * * * * /home/ubuntu/AutoSync/scripts/autosync.sh
+
+# 2) Mirror Google Drive "backup" folder into drive_folder every minute
+# Replace gdrive2024:backup with your remote’s folder name
+* * * * * rclone sync gdrive2024:backup /home/ubuntu/AutoSync/drive_folder
+
+0 0 * * * /home/ubuntu/AutoSync/scripts/logrotate.sh

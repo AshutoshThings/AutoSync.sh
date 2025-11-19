@@ -1,0 +1,18 @@
+# logs and runtime files
+autosync.log
+logs/
+*.log
+*.tar.gz
+
+# local data mirrors
+drive_folder/
+local_folder/
+
+# rclone config (safety)
+rclone.conf
+.root/.config/rclone/
+
+# editor and OS files
+*.swp
+.DS_Store
+.vscode/
