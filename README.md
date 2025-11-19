@@ -154,6 +154,6 @@ ___
 <p align="center">
   <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdTVlNzIwcmZpZmk1Y29vN2hxZTFpeXF2NHYyOXNyMWw0NGx5M3l2NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5xaOcLGvzHxDKjufnLW/giphy.gif" width="380">
   <br>
-  <i>It is free bro, do whatever you want with it. if you liked like, just give it a star, that's all.</i>
+  <i>It is free bro, do whatever you want with it. if you liked this, just give it a star, that's all.</i>
 </p>
 
