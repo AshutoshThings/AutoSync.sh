@@ -77,7 +77,7 @@ AutoSync/
 
 #### 1. Clone the Repository
 ```
-git clone https://github.com/AshutoshThings/AutoSync.sh
+git clone git@github.com:AshutoshThings/AutoSync.sh.git
 cd AutoSync.sh
 ```
 #### 2. Build Docker Image
