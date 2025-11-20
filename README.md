@@ -17,11 +17,7 @@
 - No cron or rclone setup on the host
 - Works identically on macOS / Linux / Windows
 
-#### 4. Secure
-- Rclone config stays inside the container
-- Nothing sensitive committed to GitHub
-
-#### 5. Lightweight & Offline-Friendly
+#### 4. Lightweight & Offline-Friendly
 - Only syncs changed files
 - Works without GUI
 - Extremely low resource usage
