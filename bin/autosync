@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#Config file loading
+#Load Config files
 CONFIG_FILE="$HOME/.config/autosync/autosync.conf"
 if [[ ! -f "$CONFIG_FILE" ]]; then
     echo "Error: Config not found at $CONFIG_FILE"
@@ -15,9 +15,8 @@ if [[ -n "$LOG_FILE" ]]; then
     touch "$LOG_FILE"
 fi
 
-
 log() {
-    local msg="[$(date '+%H:%M:%S')] $1"
+    local msg="[$(date '+%m-%d %H:%M:%S')] $1"
     echo "$msg"
     [[ -n "$LOG_FILE" ]] && echo "$msg" >> "$LOG_FILE"
 }
@@ -31,7 +30,6 @@ notify() {
 log "AutoSync Daemon Started"
 log "Watching: $LOCAL_DIR"
 log "Remote:   $REMOTE_NAME:$REMOTE_DIR"
-log "Polling Remote every ${POLL_INTERVAL}s"
 
 log "Running startup check..."
 if ! rclone bisync "$LOCAL_DIR" "$REMOTE_NAME:$REMOTE_DIR" --verbose; then
@@ -39,27 +37,32 @@ if ! rclone bisync "$LOCAL_DIR" "$REMOTE_NAME:$REMOTE_DIR" --verbose; then
     rclone bisync "$LOCAL_DIR" "$REMOTE_NAME:$REMOTE_DIR" --resync --verbose
 fi
 
+
+
 while true; do
-    
-    log "Waiting for changes (or heartbeat)..."
-    
     inotifywait -r -e modify,create,delete,move "$LOCAL_DIR" --exclude '\.git' -t "$POLL_INTERVAL" 2>/dev/null
     EXIT_CODE=$?
+
+    SYNC_NEEDED=false
 
     if [ $EXIT_CODE -eq 0 ]; then
         log "Local change detected! Debouncing for $DELAY seconds..."
         sleep $DELAY
+        SYNC_NEEDED=true
     elif [ $EXIT_CODE -eq 2 ]; then
-        log "Heartbeat timeout. Checking remote changes..."
+        SYNC_NEEDED=false
     fi
     
-    log "Syncing..."
-    if rclone bisync "$LOCAL_DIR" "$REMOTE_NAME:$REMOTE_DIR" --verbose; then
-        log "Sync complete."
-        notify "Sync Successful"
+    if [ "$SYNC_NEEDED" = true ]; then
+        log "Syncing local changes..."
+        if rclone bisync "$LOCAL_DIR" "$REMOTE_NAME:$REMOTE_DIR" --verbose; then
+            log "Sync complete."
+            notify "Sync Successful"
+        else
+            log "Sync Error (check logs)"
+            notify "Sync Failed"
+        fi
     else
-        log "Sync Error"
-        notify "Sync Failed"
+        rclone bisync "$LOCAL_DIR" "$REMOTE_NAME:$REMOTE_DIR" >/dev/null 2>&1 || log "Remote check/Heartbeat failed"
     fi
-
 done
