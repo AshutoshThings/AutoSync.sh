@@ -1,0 +1,9 @@
+services:
+  autosync-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: autosync_dev_env
+    volumes:
+      - ../:/app
+    command: tail -f /dev/null
