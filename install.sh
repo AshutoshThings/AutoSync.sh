@@ -1,5 +1,5 @@
 #!/bin/bash
-
+PROJECT_ROOT=$(pwd)
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
@@ -75,6 +75,7 @@ LOCAL_DIR="$LOCAL_DIR"
 REMOTE_NAME="$REMOTE_NAME"
 REMOTE_DIR="$REMOTE_DIR"
 DELAY=5
+LOG_FILE="$PROJECT_ROOT/autosync.log"
 EOF
 echo -e "${GREEN}Configuration saved to $CONFIG_DIR/autosync.conf${NC}"
 

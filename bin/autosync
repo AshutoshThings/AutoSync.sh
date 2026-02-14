@@ -11,6 +11,11 @@ source "$CONFIG_FILE"
 DELAY=${DELAY:-5}
 POLL_INTERVAL=180
 
+if [[ -n "$LOG_FILE" ]]; then
+    touch "$LOG_FILE"
+fi
+
+
 log() {
     local msg="[$(date '+%H:%M:%S')] $1"
     echo "$msg"
@@ -49,8 +54,12 @@ while true; do
     fi
     
     log "Syncing..."
-    rclone bisync "$LOCAL_DIR" "$REMOTE_NAME:$REMOTE_DIR" --verbose || log "Sync Error (check logs)"
-    
-    log "Sync complete."
+    if rclone bisync "$LOCAL_DIR" "$REMOTE_NAME:$REMOTE_DIR" --verbose; then
+        log "Sync complete."
+        notify "Sync Successful"
+    else
+        log "Sync Error"
+        notify "Sync Failed"
+    fi
 
 done
