@@ -13,10 +13,8 @@ RUN apt-get update && apt-get install -y \
     bash\
     rclone \
     unzip \
-    pkg-config \
-    libssl-dev \
-    libcurl4-openssl-dev \
-    libjsoncpp-dev
+    rclone \           
+    inotify-tools \
 
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app

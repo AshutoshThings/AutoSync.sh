@@ -1,0 +1,11 @@
+[Unit]
+Description=AutoSync Background Service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/autosync
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
