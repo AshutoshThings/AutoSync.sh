@@ -1,151 +1,72 @@
-# 🚀 AutoSync.sh
-## A Docker-powered, automated cloud sync engine for Google Drive + Local Folder
-<p align="center"> <img src="https://img.shields.io/badge/Platform-Docker-blue?logo=docker&style=for-the-badge"> <img src="https://img.shields.io/badge/Sync-Rclone-brightgreen?logo=google-drive&style=for-the-badge"> <img src="https://img.shields.io/badge/Scheduler-Cron-orange?style=for-the-badge"> <img src="https://img.shields.io/badge/Logs-AutoRotate-yellow?style=for-the-badge"> <img src="https://img.shields.io/github/license/AshutoshThings/AutoSync.sh?style=for-the-badge"> </p> <p align="center"> <b>Automatic • Containerized • Secure • Real-time File Synchronization</b><br> Runs everywhere with Docker. Keeps your Google Drive folder & local folder in perfect sync. </p>
+# AutoSync.sh
+A Linux-native, event-driven cloud synchronization tool for Google Drive and Local Folders
 
-## Features
-#### 1. Two-Way Sync (Local ↔ Google Drive)
--  Local → Cloud upload
--  Cloud → Local mirror download
--  Runs every minute using cron
+AutoSync.sh is a background service that monitors your local files in real-time and ensures they stay in perfect harmony with Google Drive. Unlike traditional cron-based syncs that run on a timer, this tool uses kernel-level event triggers to act the moment a file is touched.
 
-#### 2. Automatic Log Rotation
-- Compresses old logs
-- Deletes old logs
--  Prevents storage bloat
-
-#### 3. Fully Dockerized
-- No cron or rclone setup on the host
-- Works identically on macOS / Linux / Windows
-
-#### 4. Lightweight & Offline-Friendly
-- Only syncs changed files
-- Works without GUI
-- Extremely low resource usage
-
-## Architecture
-
-```
-+------------------------------+
-|        Docker Container       |
-|------------------------------|
-| Cron + Rclone + Scripts      |
-+--------------+---------------+
-               |
-   Every minute| 
-               ▼
-  +--------------------------+
-  | autosync.sh              |
-  | Upload local → GDrive    |
-  +--------------------------+
-               |
-               ▼
-  +--------------------------+
-  | rclone sync (mirror)     |
-  | GDrive:backup → local    |
-  +--------------------------+
-               |
-     Nightly at 12 AM
-               ▼
-  +--------------------------+
-  | logrotate.sh             |
-  | Compress + cleanup logs  |
-  +--------------------------+
-```
+## Features 
+1. Real-Time File Change Monitoring (uses `inotify-tools`)
+2. GDrive 2-Way Sync (uses `rclone bisync`)
+3. Automatically starts on boot and the life cycle can be managed by `systemd` service commands.
+4. Optimization :
+  - If a file is saved multiple times in quick succession, the script waits for a 5-second quiet period before syncing to save bandwidth and API     hits.
+  - Every 3 minutes, the daemon checks for remote changes from Google Drive silently, ensuring logs remain clean unless an actual transfer or        error occurs.
 
 ## Project Structure 
-
 ```
-AutoSync/
-├── Dockerfile
-├── README.md
-├── entrypoint.sh
+AUTOSYNC.SH/
+├── bin/
+│   └── autosync         # core daemon
+├── config/
+│   └── autosync.conf    # Local configuration
+├── docker/              # Development support
+│   ├── compose.yaml
+│   └── Dockerfile
 ├── scripts/
-│   ├── autosync.sh
-│   ├── logrotate.sh
-│   └── crontab.txt
-├── drive_folder/        # Google Drive mirror
-├── local_folder/        # Upload source
-├── logs/                # Script logs
-└── .gitignore
+│   └── logrotate.sh     # log manager
+├── systemd/
+│   └── autosync.service # for background persistence
+├── .gitignore           
+├── autosync.log         
+├── install.sh           # installer
+├── LICENSE             
+└── README.md            # Project documentation (Must read before starting setup)
 ```
 
-## Installation Guide
+## Installation Guide(for users):
+1. Clone the Repo :
+   ```
+      git clone https://github.com/AshutoshThings/AutoSync.sh.git
+      cd AutoSync.sh
+   ```
+2. Run the installer: `./install.sh`
+3. Create the Remote(rclone configuartion) :
+   ```
+    new remote           > n
+    Storage              > 18 (for google drive)
+    client ID            > skip
+    Scope                > 1
+    edit advanced config > n
+    use auto config      > n
+    config this as shared drive > n
+    keep this "gdrive2024(whatever name you gave)" remote > y
+    save this config and for verification of rclone with google drive you will have to execute a command something like this rclone authorize "drive" "eyJzY...." into your computer terminal which will pop up your browser which then you will have to verify with your login credentials then you go back to the termianl and you will get long random text some like this : Paste the following into your remote machine --->
+    eyJ0b2tlX............2KzA1OjMwXCIsXCJleHBpcmVzX2luXCI6MzU5OX0ifQ
+    <---End paste
+    Copy this and paste it into your terminal to authenticate yourself to rclone.
 
-#### 1. Clone the Repository
-```
-git clone git@github.com:AshutoshThings/AutoSync.sh.git
-cd AutoSync.sh
-```
-#### 2. Build Docker Image
-```
-docker build -t autosync .
-```
-#### 3. Run Container
-```
-docker run -it --name autosync-container autosync
-```
-#### 4. Configure Rclone (do it very carefully)
-```
-rclone config
-new remote           > n
-Storage              > 18 (for google drive)
-client ID            > skip
-Scope                > 1
-edit advanced config > n
-use auto config      > n
-config this as shared drive > n
-keep this "gdrive2024(whatever name you gave)" remote > y
-save this config and for verification of rclone with google drive you will have to execute a command something like this rclone authorize "drive" "eyJzY...." into your computer terminal which will pop up your browser which then you will have to verify with your login credentials then you go back to the termianl and you will get long random text some like this : Paste the following into your remote machine --->
-eyJ0b2tlX............2KzA1OjMwXCIsXCJleHBpcmVzX2luXCI6MzU5OX0ifQ
-<---End paste
+   Once the remote is created, tell AutoSync which local folder you want to sync
+   and the tell where autosync should sync the files on your Google Drive (i.e., your newly created remote)
+    ```
+4. That's it, configuration done.
+   
+5. To Test : go to the file you told autosync to monitor locally, paste something into that folder and see it automatically get uploaded you                   your google drive.
 
-copy this and paste into your terminal to authenticate yourself to rclone.
-```
-Test yourself
-```
-rclone ls gdrive2024:
-```
-If you see files → you're done.
+## Contribution - Replicate Development Environment (for Developers)
 
-#### 5. Exit & Start as Background Service
-```
-exit
-docker start autosync-container
-```
-Logs:
-```
-docker logs -f autosync-container
-```
+(will update soon...🤞)
+I have used docker so yeah run Docker build command.
 
-### Scripts Overview
- > autosync.sh
-- Uploads changed files
-- Writes logs
-- Handles network errors
-> logrotate.sh
-- Compresses yesterday’s logs
-- Deletes logs older than N days
-- Keeps container storage clean
-> crontab.txt
-- Defines all jobs (sync & log rotation)
-> entrypoint.sh
-- Starts cron in the foreground.
 
-### Security Considerations
-- Rclone config stored inside container only
-- Tokens can be revoked any time from Google Security Dashboard
-
-## Testing
-#### Test syncing upload:
-```
-echo "hello" > local_folder/test.txt
-```
-Within 1 minute:
-``` test.txt ``` should appear in Google Drive.
-### Test download mirror:
-Add a file in Google Drive → backup folder
-→ it appears automatically in drive_folder/
-___
 ## License - Unlicense 
 <p align="center">
   <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdTVlNzIwcmZpZmk1Y29vN2hxZTFpeXF2NHYyOXNyMWw0NGx5M3l2NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5xaOcLGvzHxDKjufnLW/giphy.gif" width="380">
